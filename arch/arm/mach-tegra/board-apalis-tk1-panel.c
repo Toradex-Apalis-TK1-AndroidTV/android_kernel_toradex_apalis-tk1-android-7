@@ -30,6 +30,7 @@
 #include <linux/dma-contiguous.h>
 #include <linux/clk.h>
 #include <linux/dma-mapping.h>
+#include <linux/pinctrl/pinconf-tegra.h>
 
 #include <mach/irqs.h>
 #include <mach/dc.h>
@@ -41,10 +42,11 @@
 #include "gpio-names.h"
 #include "board-apalis-tk1.h"
 #include "board-panel.h"
-#include "common.h"
+#include "board-common.h"
+#include <linux/platform/tegra/common.h>
+#include <linux/platform/tegra/dvfs.h>
 #include "iomap.h"
 #include "tegra12_host1x_devices.h"
-#include "dvfs.h"
 
 struct platform_device *__init apalis_tk1_host1x_init(void)
 {
@@ -284,7 +286,7 @@ static int apalis_tk1_hdmi_enable(struct device *dev)
 	return 0;
 }
 
-static int apalis_tk1_hdmi_disable(void)
+static int apalis_tk1_hdmi_disable(struct device *dev)
 {
 	if (apalis_tk1_hdmi_reg) {
 		regulator_disable(apalis_tk1_hdmi_reg);
@@ -379,23 +381,6 @@ struct tegra_hdmi_out apalis_tk1_hdmi_out = {
 	.n_tmds_config	= ARRAY_SIZE(apalis_tk1_tmds_config),
 };
 
-#if defined(CONFIG_FRAMEBUFFER_CONSOLE)
-static struct tegra_dc_mode hdmi_panel_modes[] = {
-	{
-		.pclk =			25200000,
-		.h_ref_to_sync =	1,
-		.v_ref_to_sync =	1,
-		.h_sync_width =		96,	/* hsync_len */
-		.v_sync_width =		2,	/* vsync_len */
-		.h_back_porch =		48,	/* left_margin */
-		.v_back_porch =		33,	/* upper_margin */
-		.h_active =		640,	/* xres */
-		.v_active =		480,	/* yres */
-		.h_front_porch =	16,	/* right_margin */
-		.v_front_porch =	10,	/* lower_margin */
-	},
-};
-#elif defined(CONFIG_TEGRA_HDMI_PRIMARY)
 static struct tegra_dc_mode hdmi_panel_modes[] = {
 	{
 		.pclk =			148500000,
@@ -411,16 +396,12 @@ static struct tegra_dc_mode hdmi_panel_modes[] = {
 		.v_front_porch =	4,	/* lower_margin */
 	},
 };
-#endif /* CONFIG_FRAMEBUFFER_CONSOLE || CONFIG_TEGRA_HDMI_PRIMARY */
+
 
 static struct tegra_dc_out apalis_tk1_disp2_out = {
 	.type		= TEGRA_DC_OUT_HDMI,
 	.flags		= TEGRA_DC_OUT_HOTPLUG_HIGH,
-#ifndef CONFIG_TEGRA_HDMI_PRIMARY
 	.parent_clk	= "pll_d2",
-#else
-	.parent_clk	= "pll_d",
-#endif /* CONFIG_TEGRA_HDMI_PRIMARY */
 
 	.ddc_bus	= 1,
 	.hotplug_gpio	= apalis_tk1_hdmi_hpd,
@@ -428,11 +409,9 @@ static struct tegra_dc_out apalis_tk1_disp2_out = {
 
 	/* TODO: update max pclk to POR */
 	.max_pixclock	= KHZ2PICOS(297000),
-#if defined(CONFIG_FRAMEBUFFER_CONSOLE) || defined(CONFIG_TEGRA_HDMI_PRIMARY)
 	.modes		= hdmi_panel_modes,
 	.n_modes	= ARRAY_SIZE(hdmi_panel_modes),
 	.depth		= 24,
-#endif /* CONFIG_FRAMEBUFFER_CONSOLE */
 
 	.align		= TEGRA_DC_ALIGN_MSB,
 	.order		= TEGRA_DC_ORDER_RED_BLUE,
