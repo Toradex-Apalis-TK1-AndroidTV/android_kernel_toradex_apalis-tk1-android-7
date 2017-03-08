@@ -24,7 +24,7 @@
 #include "board.h"
 #include "board-apalis-tk1.h"
 #include "tegra-board-id.h"
-#include "tegra12_emc.h"
+#include <linux/platform/tegra/tegra12_emc.h>
 #include "devices.h"
 
 static struct tegra12_emc_table apalis_tk1_ddr3_emc_table[] = {

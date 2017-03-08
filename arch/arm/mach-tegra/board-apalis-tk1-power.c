@@ -33,22 +33,22 @@
 #include <linux/regulator/tegra-dfll-bypass-regulator.h>
 #include <linux/tegra-fuse.h>
 #include <linux/tegra-pmc.h>
+#include <linux/pinctrl/pinconf-tegra.h>
 
 #include <asm/mach-types.h>
-#include <mach/pinmux-t12.h>
+#include <linux/tegra_soctherm.h>
 
 #include "pm.h"
-#include "dvfs.h"
+#include <linux/platform/tegra/dvfs.h>
 #include "board.h"
-#include "common.h"
+#include <linux/platform/tegra/common.h>
 #include "tegra-board-id.h"
 #include "board-common.h"
 #include "board-apalis-tk1.h"
 #include "board-pmu-defines.h"
 #include "devices.h"
 #include "iomap.h"
-#include "tegra_cl_dvfs.h"
-#include "tegra11_soctherm.h"
+#include <linux/platform/tegra/tegra_cl_dvfs.h>
 
 #define E1735_EMULATE_E1767_SKU	1001
 static struct tegra_suspend_platform_data apalis_tk1_suspend_data = {
@@ -65,17 +65,15 @@ static struct tegra_suspend_platform_data apalis_tk1_suspend_data = {
 	.min_residency_ncpu_slow	= 5000,
 	.min_residency_mclk_stop	= 5000,
 	.min_residency_crail		= 20000,
-};
-
-static struct regulator_consumer_supply fixed_reg_en_avdd_3v3_dp_supply[] = {
-	REGULATOR_SUPPLY("avdd_3v3_dp", NULL),
-};
-
-FIXED_SYNC_REG(121, avdd_3v3_dp, avdd_3v3_dp, NULL, 0, 0, TEGRA_GPIO_PH3, false,
-	       true, 0, 3300, 0);
-
-static struct platform_device *fixed_reg_devs_e1824[] = {
-	&fixed_reg_en_avdd_3v3_dp_dev,
+#ifdef CONFIG_TEGRA_LP1_LOW_COREVOLTAGE
+	.lp1_lowvolt_support = true,
+	.i2c_base_addr = TEGRA_I2C5_BASE,
+	.pmuslave_addr = 0xB0,
+	.core_reg_addr = 0x33,
+	.lp1_core_volt_low_cold = 0x33,
+	.lp1_core_volt_low = 0x33,
+	.lp1_core_volt_high = 0x42,
+#endif
 };
 
 /************************ apalis_tk1 CL-DVFS DATA *********************/
@@ -118,7 +116,6 @@ static struct tegra_cl_dvfs_platform_data e1735_cl_dvfs_data = {
 		.pwm_rate		= 12750000,
 		.min_uV			= E1735_CPU_VDD_MIN_UV,
 		.step_uV		= E1735_CPU_VDD_STEP_UV,
-		.pwm_pingroup		= TEGRA_PINGROUP_DVFS_PWM,
 		.out_gpio		= TEGRA_GPIO_PS5,
 		.out_enable_high	= false,
 #ifdef CONFIG_REGULATOR_TEGRA_DFLL_BYPASS
@@ -129,6 +126,7 @@ static struct tegra_cl_dvfs_platform_data e1735_cl_dvfs_data = {
 	.cfg_param	= &e1735_cl_dvfs_param,
 };
 
+#ifdef CONFIG_REGULATOR_TEGRA_DFLL_BYPASS
 static void e1735_suspend_dfll_bypass(void)
 {
 	__gpio_set_value(TEGRA_GPIO_PS5, 1); /* tristate external PWM buffer */
@@ -139,15 +137,33 @@ static void e1735_resume_dfll_bypass(void)
 	__gpio_set_value(TEGRA_GPIO_PS5, 0); /* enable PWM buffer operations */
 }
 
+static void e1767_configure_dvfs_pwm_tristate(const char *gname, int tristate)
+{
+	struct pinctrl_dev *pctl_dev = NULL;
+	unsigned long config;
+	int ret;
+
+	pctl_dev = tegra_get_pinctrl_device_handle();
+	if (!pctl_dev)
+		return;
+
+	config = TEGRA_PINCONF_PACK(TEGRA_PINCONF_PARAM_TRISTATE, tristate);
+	ret = pinctrl_set_config_for_group_name(pctl_dev, gname, config);
+	if (ret < 0)
+		pr_err("%s(): ERROR: Not able to set %s to TRISTATE %d: %d\n",
+			__func__, gname, tristate, ret);
+}
+
 static void e1767_suspend_dfll_bypass(void)
 {
-	tegra_pinmux_set_tristate(TEGRA_PINGROUP_DVFS_PWM, TEGRA_TRI_TRISTATE);
+	e1767_configure_dvfs_pwm_tristate("dvfs_pwm_px0", TEGRA_PIN_ENABLE);
 }
 
 static void e1767_resume_dfll_bypass(void)
 {
-	tegra_pinmux_set_tristate(TEGRA_PINGROUP_DVFS_PWM, TEGRA_TRI_NORMAL);
+	e1767_configure_dvfs_pwm_tristate("dvfs_pwm_px0", TEGRA_PIN_DISABLE);
 }
+#endif
 
 static struct tegra_cl_dvfs_cfg_param e1733_apalis_tk1_cl_dvfs_param = {
 	.sample_rate = 12500,
@@ -294,49 +310,22 @@ int __init apalis_tk1_rail_alignment_init(void)
 	return 0;
 }
 
-static int __init apalis_tk1_display_regulator_init(void)
-{
-	struct board_info display_board_info;
-
-	tegra_get_display_board_info(&display_board_info);
-	if (display_board_info.board_id == BOARD_E1824)
-		platform_add_devices(fixed_reg_devs_e1824,
-				     ARRAY_SIZE(fixed_reg_devs_e1824));
-
-	return 0;
-}
-
 int __init apalis_tk1_regulator_init(void)
 {
 	struct board_info pmu_board_info;
 
-	apalis_tk1_display_regulator_init();
-
 	tegra_get_pmu_board_info(&pmu_board_info);
-
-	pr_info("pmu_board_info.board_id = %d\n", pmu_board_info.board_id);
 
 	switch (pmu_board_info.board_id) {
 	case BOARD_E1733:
 	case BOARD_E1734:
-		tegra_pmc_pmu_interrupt_polarity(true);
-		break;
-
 	case BOARD_E1735:
-		tegra_pmc_pmu_interrupt_polarity(true);
-#ifdef CONFIG_REGULATOR_TEGRA_DFLL_BYPASS
-		tegra_init_cpu_reg_mode_limits(E1735_CPU_VDD_IDLE_MA,
-					       REGULATOR_MODE_IDLE);
-#endif
-		break;
-
 	case BOARD_E1736:
 	case BOARD_E1936:
 	case BOARD_E1769:
 	case BOARD_P1761:
 	case BOARD_P1765:
-		tn8_regulator_init();
-		return 0;
+		break;
 	default:
 		pr_warn("PMU board id 0x%04x is not supported\n",
 			pmu_board_info.board_id);
@@ -346,6 +335,7 @@ int __init apalis_tk1_regulator_init(void)
 	apalis_tk1_cl_dvfs_init(&pmu_board_info);
 	return 0;
 }
+
 
 int __init apalis_tk1_suspend_init(void)
 {
@@ -370,38 +360,6 @@ int __init apalis_tk1_suspend_init(void)
 	}
 
 	tegra_init_suspend(&apalis_tk1_suspend_data);
-	return 0;
-}
-
-int __init apalis_tk1_edp_init(void)
-{
-	unsigned int regulator_mA;
-
-	regulator_mA = get_maximum_cpu_current_supported();
-	if (!regulator_mA) {
-		/* CD575M UCM2 */
-		if(tegra_cpu_speedo_id() == 6)
-			regulator_mA = 11800;
-		/* CD575MI UCM1 */
-		else if (tegra_cpu_speedo_id() == 8)
-			regulator_mA = 12450;
-		/* CD575MI UCM2 */
-		else if (tegra_cpu_speedo_id() == 7)
-			regulator_mA = 11500;
-		/* CD575M UCM1 default */
-		else
-			regulator_mA = 12500;
-	}
-
-	pr_info("%s: CPU regulator %d mA\n", __func__, regulator_mA);
-	tegra_init_cpu_edp_limits(regulator_mA);
-
-	/* gpu maximum current */
-	regulator_mA = 11400;
-
-	pr_info("%s: GPU regulator %d mA\n", __func__, regulator_mA);
-	tegra_init_gpu_edp_limits(regulator_mA);
-
 	return 0;
 }
 
@@ -640,5 +598,5 @@ int __init apalis_tk1_soctherm_init(void)
 	memcpy(&apalis_tk1_soctherm_data.throttle[THROTTLE_OC1],
 	       &voltmon_throttle_t12x, sizeof(voltmon_throttle_t12x));
 
-	return tegra11_soctherm_init(&apalis_tk1_soctherm_data);
+	return tegra_soctherm_init(&apalis_tk1_soctherm_data);
 }
