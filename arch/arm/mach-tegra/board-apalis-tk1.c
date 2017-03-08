@@ -42,6 +42,7 @@
 #include <linux/skbuff.h>
 #include <linux/ti_wilink_st.h>
 #include <linux/regulator/consumer.h>
+#include <linux/regulator/machine.h>
 #include <linux/smb349-charger.h>
 #include <linux/max17048_battery.h>
 #include <linux/leds.h>
@@ -54,31 +55,29 @@
 #include <linux/usb/tegra_usb_phy.h>
 #include <linux/mfd/palmas.h>
 #include <linux/clk/tegra.h>
-#include <media/tegra_dtv.h>
 #include <linux/clocksource.h>
 #include <linux/irqchip.h>
 #include <linux/irqchip/tegra.h>
 #include <linux/tegra-soc.h>
-#include <linux/tegra_fiq_debugger.h>
 #include <linux/platform_data/tegra_usb_modem_power.h>
 #include <linux/platform_data/tegra_ahci.h>
 #include <linux/irqchip/tegra.h>
 #include <sound/max98090.h>
-#include <linux/pci.h>
+#include <media/tegra_dtv.h>
+#include <linux/pinctrl/pinctrl.h>
+#include <linux/pinctrl/consumer.h>
+#include <linux/pinctrl/pinconf-tegra.h>
 
 #include <mach/irqs.h>
-#include <mach/pinmux.h>
-#include <mach/pinmux-t12.h>
 #include <mach/io_dpd.h>
 #include <mach/i2s.h>
-#include <mach/isomgr.h>
+#include <linux/platform/tegra/isomgr.h>
 #include <mach/tegra_asoc_pdata.h>
 #include <mach/dc.h>
 #include <mach/tegra_usb_pad_ctrl.h>
 
 #include <asm/mach-types.h>
 #include <asm/mach/arch.h>
-#include <mach/gpio-tegra.h>
 #include <mach/xusb.h>
 
 #include "board.h"
@@ -86,8 +85,8 @@
 #include "board-common.h"
 #include "board-touch-raydium.h"
 #include "board-touch-maxim_sti.h"
-#include "clock.h"
-#include "common.h"
+#include <linux/platform/tegra/clock.h>
+#include <linux/platform/tegra/common.h>
 #include "devices.h"
 #include "gpio-names.h"
 #include "iomap.h"
@@ -143,11 +142,6 @@ static void apalis_tk1_i2c_init(void)
 	i2c_register_board_info(4, &apalis_tk1_sgtl5000_board_info, 1);
 }
 
-static struct tegra_serial_platform_data apalis_tk1_uarta_pdata = {
-	.dma_req_selector = 8,
-	.modem_interrupt = false,
-};
-
 static struct tegra_asoc_platform_data apalis_tk1_audio_pdata_sgtl5000 = {
 	.gpio_hp_det		= -1,
 	.gpio_ldo1_en		= -1,
@@ -184,64 +178,8 @@ static struct platform_device apalis_tk1_audio_device_sgtl5000 = {
 	},
 };
 
-static void __init apalis_tk1_uart_init(void)
-{
-	tegra_uarta_device.dev.platform_data = &apalis_tk1_uarta_pdata;
-	if (!is_tegra_debug_uartport_hs()) {
-		int debug_port_id = uart_console_debug_init(0);
-		if (debug_port_id < 0)
-			return;
-
-#ifdef CONFIG_TEGRA_FIQ_DEBUGGER
-#if !defined(CONFIG_TRUSTED_FOUNDATIONS) && defined(CONFIG_ARCH_TEGRA_12x_SOC) \
-		&& defined(CONFIG_FIQ_DEBUGGER)
-	tegra_serial_debug_init(TEGRA_UARTA_BASE, INT_WDT_AVP, NULL, -1, -1);
-	platform_device_register(uart_console_debug_device);
-#else
-	tegra_serial_debug_init(TEGRA_UARTA_BASE, INT_WDT_CPU, NULL, -1, -1);
-#endif
-#else
-		platform_device_register(uart_console_debug_device);
-#endif
-	} else {
-		tegra_uarta_device.dev.platform_data = &apalis_tk1_uarta_pdata;
-		platform_device_register(&tegra_uarta_device);
-	}
-}
-
-static struct resource tegra_rtc_resources[] = {
-	[0] = {
-		.start	= TEGRA_RTC_BASE,
-		.end	= TEGRA_RTC_BASE + TEGRA_RTC_SIZE - 1,
-		.flags	= IORESOURCE_MEM,
-	},
-	[1] = {
-		.start	= INT_RTC,
-		.end	= INT_RTC,
-		.flags	= IORESOURCE_IRQ,
-	},
-};
-
-static struct platform_device tegra_rtc_device = {
-	.name		= "tegra_rtc",
-	.id		= -1,
-	.resource	= tegra_rtc_resources,
-	.num_resources	= ARRAY_SIZE(tegra_rtc_resources),
-};
-
 static struct platform_device *apalis_tk1_devices[] __initdata = {
-	&tegra_pmu_device,
 	&tegra_rtc_device,
-#if defined(CONFIG_TEGRA_WAKEUP_MONITOR)
-	&tegratab_tegra_wakeup_monitor_device,
-#endif
-	&tegra_udc_device,
-#if defined(CONFIG_TEGRA_WATCHDOG)
-	&tegra_wdt0_device,
-#endif
-#if defined(CONFIG_TEGRA_AVP)
-	&tegra_avp_device,
-#endif
 #if defined(CONFIG_CRYPTO_DEV_TEGRA_SE) && !defined(CONFIG_USE_OF)
 	&tegra12_se_device,
 #endif
@@ -249,16 +187,16 @@ static struct platform_device *apalis_tk1_devices[] __initdata = {
 	&tegra_dam_device0,
 	&tegra_dam_device1,
 	&tegra_dam_device2,
-	&tegra_i2s_device2,
+	&tegra_i2s_device0,
+	&tegra_i2s_device1,
+	&tegra_i2s_device3,
+	&tegra_i2s_device4,
 	&tegra_spdif_device,
 	&spdif_dit_device,
-	&tegra_hda_device,
+	&bluetooth_dit_device,
+	&baseband_dit_device,
 	&tegra_offload_device,
 	&tegra30_avp_audio_device,
-#if defined(CONFIG_CRYPTO_DEV_TEGRA_AES)
-	&tegra_aes_device,
-#endif
-	&tegra_hier_ictlr_device,
 };
 
 static struct tegra_usb_platform_data tegra_udc_pdata = {
@@ -268,24 +206,24 @@ static struct tegra_usb_platform_data tegra_udc_pdata = {
 	.phy_intf = TEGRA_USB_PHY_INTF_UTMI,
 	.op_mode = TEGRA_USB_OPMODE_DEVICE,
 	.u_data.dev = {
-		.vbus_pmu_irq			= 0,
-		.vbus_gpio			= -1,
-		.charging_supported		= false,
-		.remote_wakeup_supported	= false,
+		.vbus_pmu_irq = 0,
+		.charging_supported = true,
+		.remote_wakeup_supported = false,
 	},
 	.u_cfg.utmi = {
-		.hssync_start_delay	= 0,
-		.elastic_limit		= 16,
-		.idle_wait_delay	= 17,
-		.term_range_adj		= 6,
-		.xcvr_setup		= 8,
-		.xcvr_lsfslew		= 2,
-		.xcvr_lsrslew		= 2,
-		.xcvr_setup_offset	= 0,
-		.xcvr_use_fuses		= 1,
+		.hssync_start_delay = 0,
+		.elastic_limit = 16,
+		.idle_wait_delay = 17,
+		.term_range_adj = 6,
+		.xcvr_setup = 8,
+		.xcvr_lsfslew = 2,
+		.xcvr_lsrslew = 2,
+		.xcvr_setup_offset = 0,
+		.xcvr_use_fuses = 1,
 	},
 };
 
+#if !defined(CONFIG_ARM64)
 static struct tegra_usb_platform_data tegra_ehci1_utmi_pdata = {
 	.port_otg = true,
 	.has_hostpc = true,
@@ -293,23 +231,22 @@ static struct tegra_usb_platform_data tegra_ehci1_utmi_pdata = {
 	.phy_intf = TEGRA_USB_PHY_INTF_UTMI,
 	.op_mode = TEGRA_USB_OPMODE_HOST,
 	.u_data.host = {
-		.vbus_gpio			= -1,
-		.hot_plug			= false,
-		.remote_wakeup_supported	= true,
-		.power_off_on_suspend		= true,
+		.hot_plug = false,
+		.remote_wakeup_supported = true,
+		.power_off_on_suspend = true,
 	},
 	.u_cfg.utmi = {
-		.hssync_start_delay	= 0,
-		.elastic_limit		= 16,
-		.idle_wait_delay	= 17,
-		.term_range_adj		= 6,
-		.xcvr_setup		= 15,
-		.xcvr_lsfslew		= 0,
-		.xcvr_lsrslew		= 3,
-		.xcvr_setup_offset	= 0,
-		.xcvr_use_fuses		= 1,
-		.vbus_oc_map		= 0x4,
-		.xcvr_hsslew_lsb	= 2,
+		.hssync_start_delay = 0,
+		.elastic_limit = 16,
+		.idle_wait_delay = 17,
+		.term_range_adj = 6,
+		.xcvr_setup = 15,
+		.xcvr_lsfslew = 0,
+		.xcvr_lsrslew = 3,
+		.xcvr_setup_offset = 0,
+		.xcvr_use_fuses = 1,
+		.vbus_oc_map = 0x4,
+		.xcvr_hsslew_lsb = 2,
 	},
 };
 
@@ -320,22 +257,21 @@ static struct tegra_usb_platform_data tegra_ehci2_utmi_pdata = {
 	.phy_intf = TEGRA_USB_PHY_INTF_UTMI,
 	.op_mode = TEGRA_USB_OPMODE_HOST,
 	.u_data.host = {
-		.vbus_gpio			= -1,
-		.hot_plug			= false,
-		.remote_wakeup_supported	= true,
-		.power_off_on_suspend		= true,
+		.hot_plug = false,
+		.remote_wakeup_supported = true,
+		.power_off_on_suspend = true,
 	},
 	.u_cfg.utmi = {
-		.hssync_start_delay	= 0,
-		.elastic_limit		= 16,
-		.idle_wait_delay	= 17,
-		.term_range_adj		= 6,
-		.xcvr_setup		= 8,
-		.xcvr_lsfslew		= 2,
-		.xcvr_lsrslew		= 2,
-		.xcvr_setup_offset	= 0,
-		.xcvr_use_fuses		= 1,
-		.vbus_oc_map		= 0x5,
+		.hssync_start_delay = 0,
+		.elastic_limit = 16,
+		.idle_wait_delay = 17,
+		.term_range_adj = 6,
+		.xcvr_setup = 8,
+		.xcvr_lsfslew = 2,
+		.xcvr_lsrslew = 2,
+		.xcvr_setup_offset = 0,
+		.xcvr_use_fuses = 1,
+		.vbus_oc_map = 0x5,
 	},
 };
 
@@ -346,22 +282,21 @@ static struct tegra_usb_platform_data tegra_ehci3_utmi_pdata = {
 	.phy_intf = TEGRA_USB_PHY_INTF_UTMI,
 	.op_mode = TEGRA_USB_OPMODE_HOST,
 	.u_data.host = {
-		.vbus_gpio			= -1,
-		.hot_plug			= false,
-		.remote_wakeup_supported	= true,
-		.power_off_on_suspend		= true,
+		.hot_plug = false,
+		.remote_wakeup_supported = true,
+		.power_off_on_suspend = true,
 	},
 	.u_cfg.utmi = {
-	.hssync_start_delay		= 0,
-		.elastic_limit		= 16,
-		.idle_wait_delay	= 17,
-		.term_range_adj		= 6,
-		.xcvr_setup		= 8,
-		.xcvr_lsfslew		= 2,
-		.xcvr_lsrslew		= 2,
-		.xcvr_setup_offset	= 0,
-		.xcvr_use_fuses		= 1,
-		.vbus_oc_map		= 0x5,
+	.hssync_start_delay = 0,
+		.elastic_limit = 16,
+		.idle_wait_delay = 17,
+		.term_range_adj = 6,
+		.xcvr_setup = 8,
+		.xcvr_lsfslew = 2,
+		.xcvr_lsrslew = 2,
+		.xcvr_setup_offset = 0,
+		.xcvr_use_fuses = 1,
+		.vbus_oc_map = 0x5,
 	},
 };
 
@@ -369,6 +304,10 @@ static struct tegra_usb_otg_data tegra_otg_pdata = {
 	.ehci_device = &tegra_ehci1_device,
 	.ehci_pdata = &tegra_ehci1_utmi_pdata,
 };
+
+#else
+static struct tegra_usb_otg_data tegra_otg_pdata;
+#endif
 
 static void apalis_tk1_usb_init(void)
 {
@@ -431,49 +370,67 @@ static void apalis_tk1_xusb_init(void)
 
 #ifdef CONFIG_USE_OF
 static struct of_dev_auxdata apalis_tk1_auxdata_lookup[] __initdata = {
-	T124_SPI_OF_DEV_AUXDATA,
-	OF_DEV_AUXDATA("nvidia,tegra124-apbdma", 0x60020000, "tegra-apbdma",
-		       NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-se", 0x70012000, "tegra12-se", NULL),
+	OF_DEV_AUXDATA("nvidia,tegra132-dtv", 0x7000c300, "dtv", NULL),
+	OF_DEV_AUXDATA("nvidia,tegra124-dtv", 0x7000c300, "dtv", NULL),
+#if defined(CONFIG_ARM64)
+	OF_DEV_AUXDATA("nvidia,tegra132-udc", 0x7d000000, "tegra-udc.0",
+			&tegra_udc_pdata.u_data.dev),
+	OF_DEV_AUXDATA("nvidia,tegra132-otg", 0x7d000000, "tegra-otg",
+			&tegra_otg_pdata),
+	OF_DEV_AUXDATA("nvidia,tegra132-ehci", 0x7d004000, "tegra-ehci.1",
+			NULL),
+	OF_DEV_AUXDATA("nvidia,tegra132-ehci", 0x7d008000, "tegra-ehci.2",
+			NULL),
+#endif
+	OF_DEV_AUXDATA("nvidia,tegra124-udc", TEGRA_USB_BASE, "tegra-udc.0",
+			NULL),
+	OF_DEV_AUXDATA("nvidia,tegra124-otg", TEGRA_USB_BASE, "tegra-otg",
+			NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-host1x", TEGRA_HOST1X_BASE, "host1x",
-		       NULL),
+		NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-gk20a", TEGRA_GK20A_BAR0_BASE,
-		       "gk20a.0", NULL),
+		"gk20a.0", NULL),
 #ifdef CONFIG_ARCH_TEGRA_VIC
 	OF_DEV_AUXDATA("nvidia,tegra124-vic", TEGRA_VIC_BASE, "vic03.0", NULL),
 #endif
 	OF_DEV_AUXDATA("nvidia,tegra124-msenc", TEGRA_MSENC_BASE, "msenc",
-		       NULL),
-	OF_DEV_AUXDATA("nvidia,tegra124-vi", TEGRA_VI_BASE, "vi.0", NULL),
+		NULL),
+	OF_DEV_AUXDATA("nvidia,tegra124-vi", TEGRA_VI_BASE, "vi", NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-isp", TEGRA_ISP_BASE, "isp.0", NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-isp", TEGRA_ISPB_BASE, "isp.1", NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-tsec", TEGRA_TSEC_BASE, "tsec", NULL),
-	OF_DEV_AUXDATA("nvidia,tegra114-hsuart", 0x70006000, "serial-tegra.0",
-		       NULL),
-	OF_DEV_AUXDATA("nvidia,tegra114-hsuart", 0x70006040, "serial-tegra.1",
-		       NULL),
-	OF_DEV_AUXDATA("nvidia,tegra114-hsuart", 0x70006200, "serial-tegra.2",
-		       NULL),
-	T124_I2C_OF_DEV_AUXDATA,
 	OF_DEV_AUXDATA("nvidia,tegra124-xhci", 0x70090000, "tegra-xhci",
-		       &xusb_pdata),
+				&xusb_pdata),
+	OF_DEV_AUXDATA("nvidia,tegra132-xhci", 0x70090000, "tegra-xhci",
+				&xusb_pdata),
 	OF_DEV_AUXDATA("nvidia,tegra124-dc", TEGRA_DISPLAY_BASE, "tegradc.0",
-		       NULL),
+		NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-dc", TEGRA_DISPLAY2_BASE, "tegradc.1",
-		       NULL),
+		NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-nvavp", 0x60001000, "nvavp",
-		       NULL),
-	OF_DEV_AUXDATA("nvidia,tegra124-pwm", 0x7000a000, "tegra-pwm", NULL),
+				NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-dfll", 0x70110000, "tegra_cl_dvfs",
-		       NULL),
+		NULL),
 	OF_DEV_AUXDATA("nvidia,tegra132-dfll", 0x70040084, "tegra_cl_dvfs",
-		       NULL),
+		NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-efuse", TEGRA_FUSE_BASE, "tegra-fuse",
-		       NULL),
+		NULL),
 	OF_DEV_AUXDATA("nvidia,tegra124-camera", 0, "pcl-generic",
-		       NULL),
-	OF_DEV_AUXDATA("nvidia,tegra114-ahci-sata", 0x70027000, "tegra-sata.0",
-		       NULL),
+				NULL),
+	OF_DEV_AUXDATA("nvidia,tegra124-ahci-sata", 0x70027000, "tegra-sata.0",
+		NULL),
+	OF_DEV_AUXDATA("nvidia,tegra-bluedroid_pm", 0, "bluedroid_pm",
+		NULL),
+	OF_DEV_AUXDATA("pwm-backlight", 0, "pwm-backlight", NULL),
+#ifdef CONFIG_TEGRA_CEC_SUPPORT
+	OF_DEV_AUXDATA("nvidia,tegra124-cec", 0x70015000, "tegra_cec", NULL),
+#endif
+	OF_DEV_AUXDATA("nvidia,tegra-audio-rt5639", 0x0, "tegra-snd-rt5639",
+		NULL),
+	OF_DEV_AUXDATA("nvidia,icera-i500", 0, "tegra_usb_modem_power", NULL),
+	OF_DEV_AUXDATA("nvidia,ptm", 0x7081c000, "ptm", NULL),
+	OF_DEV_AUXDATA("nvidia,tegra30-hda", 0x70030000, "tegra30-hda", NULL),
 	{}
 };
 #endif
@@ -537,7 +494,6 @@ static struct tegra_suspend_platform_data apalis_tk1_suspend_data = {
 static void __init tegra_apalis_tk1_late_init(void)
 {
 	apalis_tk1_display_init();
-	apalis_tk1_uart_init();
 	apalis_tk1_usb_init();
 #ifdef CONFIG_TEGRA_XUSB_PLATFORM
 	apalis_tk1_xusb_init();
@@ -623,21 +579,6 @@ static void __init tegra_apalis_tk1_dt_init(void)
 	tegra_apalis_tk1_late_init();
 }
 
-/*
- * The Apalis evaluation board needs to set the link speed to 2.5 GT/s (GEN1).
- * The default link speed setting is 5 GT/s (GEN2). 0x98 is the Link Control 2
- * PCIe Capability Register of the PEX8605 PCIe switch.
- * With the default speed setting of 5 GT/s (GEN2) the switch does not bring up
- * any of its down stream links. Limiting it to GEN1 makes them down stream
- * links to show up and work however as GEN1 only.
- */
-static void quirk_apalis_plx_gen1(struct pci_dev *dev)
-{
-	pci_write_config_dword(dev, 0x98, 0x01);
-	mdelay(50);
-}
-DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_PLX, 0x8605, quirk_apalis_plx_gen1);
-
 static void __init tegra_apalis_tk1_reserve(void)
 {
 #ifdef CONFIG_TEGRA_HDMI_PRIMARY
@@ -683,7 +624,6 @@ DT_MACHINE_START(APALIS_TK1, "apalis-tk1")
 	.init_irq	= irqchip_init,
 	.init_time	= clocksource_of_init,
 	.init_machine	= tegra_apalis_tk1_dt_init,
-	.restart	= tegra_assert_system_reset,
 	.dt_compat	= apalis_tk1_dt_board_compat,
 	.init_late      = tegra_init_late
 MACHINE_END

@@ -23,8 +23,6 @@
 #include <linux/tegra-fuse.h>
 #include <linux/of_platform.h>
 #include <mach/edp.h>
-#include <mach/pinmux-t12.h>
-#include <mach/pinmux.h>
 #include <mach/io_dpd.h>
 #include <media/camera.h>
 #include <media/ar0330.h>
@@ -40,15 +38,15 @@
 #include <media/mt9m114.h>
 #include <media/ad5823.h>
 #include <media/max77387.h>
-
 #include <media/ov4689.h>
+
 #include <linux/platform_device.h>
 #include <media/soc_camera.h>
 #include <media/soc_camera_platform.h>
 #include <media/tegra_v4l2_camera.h>
 #include <linux/generic_adc_thermal.h>
 
-#include "cpu-tegra.h"
+#include <linux/platform/tegra/cpu-tegra.h>
 #include "devices.h"
 #include "board.h"
 #include "board-common.h"
