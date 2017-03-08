@@ -20,8 +20,13 @@
 #include <linux/platform_data/tegra_edp.h>
 #include <linux/power_supply.h>
 #include <mach/edp.h>
+#include <linux/interrupt.h>
+#include <linux/tegra_soctherm.h>
+
+#include "board-apalis-tk1.h"
 #include "board.h"
 #include "board-panel.h"
+#include <linux/platform/tegra/common.h>
 
 /* --- EDP consumers data --- */
 /* TODO static unsigned int ov5693_states[] = { 0, 300 };*/
@@ -72,93 +77,21 @@ void __init apalis_tk1_new_sysedp_init(void)
 	WARN_ON(r);
 }
 
-/* --- Battery monitor data --- */
-static struct sysedp_batmon_ibat_lut apalis_tk1_ibat_lut[] = {
-/*-- temp in deci-C, current in milli ampere --*/
-	{600, 9750},
-	{-300, 9750}
-};
-
-/* Values for Leyden HY-LDN-N-TD battery */
-/*                           45C      23C     10C      5C      0C    -20 */
-static int rbat_data[] = {
-	100000, 120000, 140000, 170000, 190000, 210000,	/* 100% */
-	100000, 120000, 150000, 170000, 190000, 210000,	/*  55% */
-	100000, 130000, 150000, 170000, 200000, 210000,	/*  50% */
-	110000, 130000, 160000, 170000, 200000, 210000,	/*  10% */
-	120000, 140000, 170000, 180000, 210000, 220000,	/*   0% */
-};
-static int rbat_temp_axis[] = { 45, 23, 10, 5, 0, -20 };
-static int rbat_capacity_axis[] = { 100, 55, 50, 10, 0 };
-
-struct sysedp_batmon_rbat_lut apalis_tk1_rbat_lut = {
-	.temp_axis = rbat_temp_axis,
-	.temp_size = ARRAY_SIZE(rbat_temp_axis),
-	.capacity_axis = rbat_capacity_axis,
-	.capacity_size = ARRAY_SIZE(rbat_capacity_axis),
-	.data = rbat_data,
-	.data_size = ARRAY_SIZE(rbat_data),
-};
-
-/* Fuel Gauge is BQ20z45 (SBS battery) */
-static struct sysedp_batmon_ocv_lut apalis_tk1_ocv_lut[] = {
-	/*SOC, OCV in micro volt */
-	{100,	8372010},
-	{95,	8163880},
-	{90,	8069280},
-	{85,	7970700},
-	{80,	7894100},
-	{75,	7820860},
-	{70,	7751890},
-	{65,	7691770},
-	{60,	7641110},
-	{55,	7598990},
-	{50,	7564200},
-	{45,	7534290},
-	{40,	7511410},
-	{35,	7491870},
-	{30,	7468380},
-	{25,	7435720},
-	{20,	7388720},
-	{15,	7338370},
-	{10,	7219650},
-	{0,	5999850},
-};
-
-static struct sysedp_batmon_calc_platform_data apalis_tk1_batmon_pdata = {
-	.power_supply = "sbs-battery",
-	.r_const = 70000,	/* in micro ohm */
-	.vsys_min = 5880000,	/* in micro volt */
-	.ibat_lut = apalis_tk1_ibat_lut,
-	.rbat_lut = &apalis_tk1_rbat_lut,
-	.ocv_lut = apalis_tk1_ocv_lut,
-};
-
-static struct platform_device apalis_tk1_batmon_device = {
-	.name = "sysedp_batmon_calc",
-	.id = -1,
-	.dev = {.platform_data = &apalis_tk1_batmon_pdata}
-};
-
-void __init apalis_tk1_sysedp_batmon_init(void)
-{
-	int r;
-
-	if (get_power_supply_type() != POWER_SUPPLY_TYPE_BATTERY) {
-		/* modify platform data on-the-fly to enable virtual battery */
-		apalis_tk1_batmon_pdata.power_supply = "test_battery";
-		apalis_tk1_batmon_pdata.update_interval = 2000;
-	}
-
-	r = platform_device_register(&apalis_tk1_batmon_device);
-	WARN_ON(r);
-}
-
-static struct tegra_sysedp_platform_data
-		apalis_tk1_sysedp_dynamic_capping_platdata = {
+#if defined(CONFIG_ARCH_TEGRA_13x_SOC)
+static struct tegra_sysedp_platform_data apalis_tk1_sysedp_dynamic_capping_platdata = {
 	.core_gain = 100,
 	.init_req_watts = 20000,
+	.pthrot_ratio = 75,
+	.cap_method = TEGRA_SYSEDP_CAP_METHOD_SIGNAL,
 };
+#else
+static struct tegra_sysedp_platform_data apalis_tk1_sysedp_dynamic_capping_platdata = {
+	.core_gain = 115,
+	.init_req_watts = 20000,
+	.pthrot_ratio = 75,
+	.cap_method = TEGRA_SYSEDP_CAP_METHOD_SIGNAL,
+};
+#endif
 
 static struct platform_device apalis_tk1_sysedp_dynamic_capping = {
 	.name = "sysedp_dynamic_capping",
@@ -179,14 +112,6 @@ void __init apalis_tk1_sysedp_dynamic_capping_init(void)
 	}
 	apalis_tk1_sysedp_dynamic_capping_platdata.corecap = corecap;
 	apalis_tk1_sysedp_dynamic_capping_platdata.corecap_size = corecap_size;
-
-	apalis_tk1_sysedp_dynamic_capping_platdata.cpufreq_lim =
-			tegra_get_system_edp_entries
-		(&apalis_tk1_sysedp_dynamic_capping_platdata.cpufreq_lim_size);
-	if (!apalis_tk1_sysedp_dynamic_capping_platdata.cpufreq_lim) {
-		WARN_ON(1);
-		return;
-	}
 
 	r = platform_device_register(&apalis_tk1_sysedp_dynamic_capping);
 	WARN_ON(r);
