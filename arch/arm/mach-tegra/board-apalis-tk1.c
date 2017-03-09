@@ -435,11 +435,6 @@ static struct of_dev_auxdata apalis_tk1_auxdata_lookup[] __initdata = {
 };
 #endif
 
-static void __init edp_init(void)
-{
-	apalis_tk1_edp_init();
-}
-
 static void __init tegra_apalis_tk1_early_init(void)
 {
 	tegra_clk_init_from_table(apalis_tk1_clk_init_table);
@@ -512,7 +507,6 @@ static void __init tegra_apalis_tk1_late_init(void)
 
 	apalis_tk1_emc_init();
 
-	edp_init();
 	isomgr_init();
 	apalis_tk1_panel_init();
 
@@ -520,10 +514,6 @@ static void __init tegra_apalis_tk1_late_init(void)
 	tegra_io_dpd_enable(&pexbias_io);
 	tegra_io_dpd_enable(&pexclk1_io);
 	tegra_io_dpd_enable(&pexclk2_io);
-
-#ifdef CONFIG_TEGRA_WDT_RECOVERY
-	tegra_wdt_recovery_init();
-#endif
 
 	apalis_tk1_sensors_init();
 	apalis_tk1_soctherm_init();

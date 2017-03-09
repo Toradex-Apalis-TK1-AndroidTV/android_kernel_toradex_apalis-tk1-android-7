@@ -525,7 +525,7 @@ static struct tegra_panel *apalis_tk1_panel_configure(void)
 {
 	struct tegra_panel *panel = NULL;
 
-	panel = &lvds_c_1366_14;
+	panel = &dsi_j_720p_5;
 	apalis_tk1_disp1_out.type = TEGRA_DC_OUT_LVDS;
 	apalis_tk1_disp1_device.resource = apalis_tk1_disp1_edp_resources;
 	apalis_tk1_disp1_device.num_resources =

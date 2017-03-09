@@ -1,12 +1,12 @@
 #include <dt-bindings/pinctrl/pinctrl-tegra.h>
 
 / {
-	pinmux: pinmux {
-		status = "okay";
-		pinctrl-names = "default", "drive", "unused";
-		pinctrl-0 = <&pinmux_default>;
-		pinctrl-1 = <&drive_default>;
-		pinctrl-2 = <&pinmux_unused_lowpower>;
+        pinmux: pinmux@70000868 {
+                status = "okay";
+                pinctrl-names = "default", "drive", "unused";
+                pinctrl-0 = <&pinmux_default>;
+                pinctrl-1 = <&drive_default>;
+                pinctrl-2 = <&pinmux_unused_lowpower>;
 
 		pinmux_default: common {
 			/* Analogue Audio (on-module) */
