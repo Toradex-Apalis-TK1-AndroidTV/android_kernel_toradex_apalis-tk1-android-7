@@ -83,6 +83,7 @@
 #include "board.h"
 #include "board-apalis-tk1.h"
 #include "board-common.h"
+#include "board-panel.h"
 #include "board-touch-raydium.h"
 #include "board-touch-maxim_sti.h"
 #include <linux/platform/tegra/clock.h>
@@ -90,6 +91,7 @@
 #include "devices.h"
 #include "gpio-names.h"
 #include "iomap.h"
+#include <linux/platform/tegra/dvfs.h>
 #include "pm.h"
 #include "tegra-board-id.h"
 #include "tegra-of-dev-auxdata.h"
@@ -488,7 +490,6 @@ static struct tegra_suspend_platform_data apalis_tk1_suspend_data = {
 
 static void __init tegra_apalis_tk1_late_init(void)
 {
-	apalis_tk1_display_init();
 	apalis_tk1_usb_init();
 #ifdef CONFIG_TEGRA_XUSB_PLATFORM
 	apalis_tk1_xusb_init();
@@ -508,7 +509,6 @@ static void __init tegra_apalis_tk1_late_init(void)
 	apalis_tk1_emc_init();
 
 	isomgr_init();
-	apalis_tk1_panel_init();
 
 	/* put PEX pads into DPD mode to save additional power */
 	tegra_io_dpd_enable(&pexbias_io);
@@ -571,33 +571,15 @@ static void __init tegra_apalis_tk1_dt_init(void)
 
 static void __init tegra_apalis_tk1_reserve(void)
 {
-#ifdef CONFIG_TEGRA_HDMI_PRIMARY
-	ulong tmp;
-#endif /* CONFIG_TEGRA_HDMI_PRIMARY */
-
 #if defined(CONFIG_NVMAP_CONVERT_CARVEOUT_TO_IOVMM) || \
 		defined(CONFIG_TEGRA_NO_CARVEOUT)
 	ulong carveout_size = 0;
-	ulong fb2_size = SZ_16M;
 #else
 	ulong carveout_size = SZ_1G;
-	ulong fb2_size = SZ_4M;
 #endif
-	ulong fb1_size = SZ_16M + SZ_2M;
 	ulong vpr_size = 186 * SZ_1M;
 
-#ifdef CONFIG_FRAMEBUFFER_CONSOLE
-	/* support FBcon on 4K monitors */
-	fb2_size = SZ_64M + SZ_8M;	/* 4096*2160*4*2 = 70778880 bytes */
-#endif /* CONFIG_FRAMEBUFFER_CONSOLE */
-
-#ifdef CONFIG_TEGRA_HDMI_PRIMARY
-	tmp = fb1_size;
-	fb1_size = fb2_size;
-	fb2_size = tmp;
-#endif /* CONFIG_TEGRA_HDMI_PRIMARY */
-
-	tegra_reserve4(carveout_size, fb1_size, fb2_size, vpr_size);
+	tegra_reserve4(carveout_size, 0, 0, vpr_size);;
 }
 
 static const char *const apalis_tk1_dt_board_compat[] = {
