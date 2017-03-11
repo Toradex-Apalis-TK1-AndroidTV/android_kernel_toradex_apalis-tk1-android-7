@@ -1,11 +1,30 @@
+/*
+ * arch/arm/boot/dts/tegra124-apalis-eval.dts
+ *
+ * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 /dts-v1/;
 
 #include "tegra124-soc-shield.dtsi"
 #include "tegra124-platforms/tegra124-apalis-keys.dtsi"
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
-#include "tegra124-platforms/tegra124-apalis-pmic.dtsi"
-#include "tegra124-platforms/tegra124-apalis-fixed.dtsi"
+#include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
 #include "panel-p-wuxga-10-1.dtsi"
 #include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
 
@@ -204,8 +223,6 @@
 		vdd_sata-supply = <&as3722_sd4>;
 		avdd_sata_pll-supply =<&as3722_sd4>;
 		avdd_sata-supply = <&as3722_sd4>;
-		hvdd_sata-supply = <&reg_3v3>;
-		vddio_pex_sata-supply = <&reg_3v3>;
 		status = "okay";
 	};
 
@@ -222,6 +239,10 @@
 		nvidia,supply_s3p3v = "hvdd_usb";
 		nvidia,supply_s1p8v = "avdd_pll_utmip";
 		nvidia,supply_s1p05v = "avddio_usb"; */
+		status = "okay";
+	};
+	backlight {
+		compatible = "pwm-backlight";
 		status = "okay";
 	};
 };

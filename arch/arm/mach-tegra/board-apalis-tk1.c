@@ -96,6 +96,8 @@
 #include "tegra-board-id.h"
 #include "tegra-of-dev-auxdata.h"
 
+static struct board_info board_info, display_board_info;
+
 static struct i2c_board_info apalis_tk1_sgtl5000_board_info = {
 	/* SGTL5000 audio codec */
 	I2C_BOARD_INFO("sgtl5000", 0x0a),
@@ -527,11 +529,20 @@ static void __init tegra_apalis_tk1_init_early(void)
 
 static void __init tegra_apalis_tk1_dt_init(void)
 {
-	tegra_apalis_tk1_early_init();
-#ifdef CONFIG_NVMAP_USE_CMA_FOR_CARVEOUT
-	carveout_linear_set(&tegra_generic_cma_dev);
-	carveout_linear_set(&tegra_vpr_cma_dev);
+	if(of_machine_is_compatible("nvidia,green-arrow"))
+		regulator_has_full_constraints();
+
+	tegra_get_board_info(&board_info);
+	tegra_get_display_board_info(&display_board_info);
+
+#ifndef CONFIG_TEGRA_HDMI_PRIMARY
+	/* In Ardbeg, zero display_board_id is considered to
+	 * Panasonic wuxga panel one */
+	tegra_set_fixed_panel_ops(true, &dsi_p_wuxga_10_1_ops,
+		"p,wuxga-10-1");
+	tegra_set_fixed_pwm_bl_ops(dsi_p_wuxga_10_1_ops.pwm_bl_ops);
 #endif
+	tegra_apalis_tk1_early_init();
 #ifdef CONFIG_USE_OF
 	apalis_tk1_camera_auxdata(apalis_tk1_auxdata_lookup);
 	of_platform_populate(NULL,
