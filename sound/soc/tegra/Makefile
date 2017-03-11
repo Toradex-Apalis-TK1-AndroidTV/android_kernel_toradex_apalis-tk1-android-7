@@ -62,6 +62,7 @@ snd-soc-tegra-trimslice-objs := trimslice.o
 snd-soc-tegra-alc5632-objs := tegra_alc5632.o
 snd-soc-tegra-max98088-objs := tegra_max98088.o
 snd-soc-tegra-aic326x-objs := tegra_aic326x.o
+snd-soc-tegra-apalis-tk1-objs := apalis-tk1.o
 snd-soc-tegra-aic325x-objs := tegra_aic325x.o
 snd-soc-tegra-rt5640-objs := tegra_rt5640.o
 snd-soc-tegra-rt5645-objs := tegra_rt5645.o
