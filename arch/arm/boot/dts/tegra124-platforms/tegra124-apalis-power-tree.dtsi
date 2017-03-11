@@ -49,6 +49,7 @@
 		pwrdet-sdmmc3-supply = <&as3722_ldo6>;
 		pwrdet-hv-supply = <&as3722_gpio2_supply>;
 	};
+
 	xusb@70090000 {
 		usb_vbus0-supply = <&usb0_vbus>;
 		usb_vbus1-supply = <&usb1_usb2_vbus>;

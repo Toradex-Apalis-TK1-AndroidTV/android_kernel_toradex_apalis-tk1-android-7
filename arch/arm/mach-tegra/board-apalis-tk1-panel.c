@@ -401,7 +401,11 @@ static struct tegra_dc_mode hdmi_panel_modes[] = {
 static struct tegra_dc_out apalis_tk1_disp2_out = {
 	.type		= TEGRA_DC_OUT_HDMI,
 	.flags		= TEGRA_DC_OUT_HOTPLUG_HIGH,
+#ifndef CONFIG_TEGRA_HDMI_PRIMARY
 	.parent_clk	= "pll_d2",
+#else
+	.parent_clk	= "pll_d",
+#endif /* CONFIG_TEGRA_HDMI_PRIMARY */
 
 	.ddc_bus	= 1,
 	.hotplug_gpio	= apalis_tk1_hdmi_hpd,
@@ -409,9 +413,10 @@ static struct tegra_dc_out apalis_tk1_disp2_out = {
 
 	/* TODO: update max pclk to POR */
 	.max_pixclock	= KHZ2PICOS(297000),
-	.modes		= hdmi_panel_modes,
-	.n_modes	= ARRAY_SIZE(hdmi_panel_modes),
+#if defined(CONFIG_FRAMEBUFFER_CONSOLE) || defined(CONFIG_TEGRA_HDMI_PRIMARY)
+	.default_mode	= "1920x1080-16@60",
 	.depth		= 24,
+#endif /* CONFIG_FRAMEBUFFER_CONSOLE */
 
 	.align		= TEGRA_DC_ALIGN_MSB,
 	.order		= TEGRA_DC_ORDER_RED_BLUE,
