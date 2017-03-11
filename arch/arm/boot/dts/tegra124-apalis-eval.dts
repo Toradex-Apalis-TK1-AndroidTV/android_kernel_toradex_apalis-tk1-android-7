@@ -8,6 +8,8 @@
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pmic.dtsi"
 #include "tegra124-platforms/tegra124-apalis-fixed.dtsi"
+#include "panel-p-wuxga-10-1.dtsi"
+#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
 
 / {
 	model = "Toradex Apalis TK1";
