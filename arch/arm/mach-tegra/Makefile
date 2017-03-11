@@ -114,7 +114,6 @@ obj-y                                   += panel-o-720p-6-0-01.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-sdhci.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-sensors.o
-obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-panel.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-memory.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-power.o
 obj-${CONFIG_MACH_APALIS_TK1}           += panel-c-lvds-1366-14.o
