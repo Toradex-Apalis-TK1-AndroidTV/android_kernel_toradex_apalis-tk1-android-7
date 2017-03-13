@@ -517,6 +517,10 @@ static void __init tegra_apalis_tk1_late_init(void)
 	tegra_io_dpd_enable(&pexclk1_io);
 	tegra_io_dpd_enable(&pexclk2_io);
 
+#ifdef CONFIG_TEGRA_WDT_RECOVERY
+	tegra_wdt_recovery_init();
+#endif
+
 	apalis_tk1_sensors_init();
 	apalis_tk1_soctherm_init();
 }
