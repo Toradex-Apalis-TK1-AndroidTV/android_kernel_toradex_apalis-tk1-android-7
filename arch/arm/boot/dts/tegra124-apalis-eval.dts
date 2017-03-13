@@ -1,12 +1,13 @@
 /dts-v1/;
 
+#include <dt-bindings/display/tegra-dc.h>
+
 #include "tegra124-soc-shield.dtsi"
 #include "tegra124-platforms/tegra124-apalis-keys.dtsi"
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pmic.dtsi"
 #include "tegra124-platforms/tegra124-apalis-fixed.dtsi"
-#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
 
 / {
 	model = "Toradex Apalis TK1";
@@ -28,18 +29,6 @@
 
 	psci {
 		status = "disabled";
-	};
-
-	host1x {
-		/* tegradc.0 */
-		dc@54200000 {
-			status = "okay";
-			nvidia,dc-flags = <TEGRA_DC_FLAG_ENABLED>;
-			nvidia,emc-clk-rate = <300000000>;
-			nvidia,cmu-enable = <1>;
-			nvidia,fb-bpp = <32>; /* bits per pixel */
-			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
-		};
 	};
 
 	pinmux@70000868 {
