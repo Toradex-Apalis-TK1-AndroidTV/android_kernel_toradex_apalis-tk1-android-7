@@ -527,6 +527,77 @@ static void __init tegra_apalis_tk1_init_early(void)
 	tegra12x_init_early();
 }
 
+static int tegra_apalis_tk1_notifier_call(struct notifier_block *nb,
+				    unsigned long event, void *data)
+{
+#ifndef CONFIG_TEGRA_HDMI_PRIMARY
+	struct device *dev = data;
+#endif
+	switch (event) {
+	case BUS_NOTIFY_BIND_DRIVER:
+#ifndef CONFIG_TEGRA_HDMI_PRIMARY
+		if (dev->of_node) {
+			if (of_device_is_compatible(dev->of_node,
+				"pwm-backlight")) {
+				tegra_pwm_bl_ops_register(dev);
+			}
+		}
+#endif
+		break;
+	default:
+		break;
+	}
+	return NOTIFY_DONE;
+}
+
+
+static int tegra_apalis_tk1_i2c_notifier_call(struct notifier_block *nb,
+			unsigned long event, void *data)
+{
+#ifndef CONFIG_TEGRA_HDMI_PRIMARY
+	struct device *dev = data;
+#endif
+
+	switch (event) {
+	case BUS_NOTIFY_BIND_DRIVER:
+#ifndef CONFIG_TEGRA_HDMI_PRIMARY
+		if (dev->of_node) {
+			if (of_device_is_compatible(dev->of_node,
+					"ti,lp8550") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8551") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8552") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8553") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8554") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8555") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8556") ||
+				of_device_is_compatible(dev->of_node,
+					"ti,lp8557")) {
+					ti_lp855x_bl_ops_register(dev);
+			}
+		}
+#endif
+		break;
+	default:
+		break;
+	}
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block platform_nb = {
+	.notifier_call = tegra_apalis_tk1_notifier_call,
+};
+
+
+static struct notifier_block i2c_nb = {
+	.notifier_call = tegra_apalis_tk1_i2c_notifier_call,
+};
+
 static void __init tegra_apalis_tk1_dt_init(void)
 {
 	if(of_machine_is_compatible("nvidia,green-arrow"))
@@ -542,6 +613,8 @@ static void __init tegra_apalis_tk1_dt_init(void)
 		"p,wuxga-10-1");
 	tegra_set_fixed_pwm_bl_ops(dsi_p_wuxga_10_1_ops.pwm_bl_ops);
 #endif
+	bus_register_notifier(&platform_bus_type, &platform_nb);
+	bus_register_notifier(&i2c_bus_type, &i2c_nb);
 	tegra_apalis_tk1_early_init();
 #ifdef CONFIG_USE_OF
 	apalis_tk1_camera_auxdata(apalis_tk1_auxdata_lookup);

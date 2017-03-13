@@ -25,7 +25,7 @@
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
-#include "tegra124-platforms/tegra124-tn8-hdmi-p1761-1270-a03.dtsi"
+#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
 
 / {
 	model = "Toradex Apalis TK1";
@@ -50,8 +50,8 @@
 	};
 
 	host1x {
-		/* tegradc.1 */
-		dc@54240000 {
+		/* tegradc.0 */
+		dc@54200000 {
 			status = "okay";
 			nvidia,dc-flags = <TEGRA_DC_FLAG_ENABLED>;
 			nvidia,emc-clk-rate = <300000000>;
