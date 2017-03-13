@@ -110,7 +110,6 @@ obj-y                                   += panel-l-720p-5-loki.o
 obj-y                                   += panel-s-edp-uhdtv-15-6.o
 obj-y                                   += panel-o-720p-6-0.o
 obj-y                                   += panel-o-720p-6-0-01.o
-obj-${CONFIG_MACH_APALIS_TK1}		+= board-panel.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-sdhci.o
 obj-${CONFIG_MACH_APALIS_TK1}           += board-apalis-tk1-sensors.o

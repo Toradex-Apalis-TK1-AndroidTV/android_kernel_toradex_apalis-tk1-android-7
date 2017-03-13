@@ -25,8 +25,7 @@
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
-#include "panel-p-wuxga-10-1.dtsi"
-#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
+#include "tegra124-platforms/tegra124-tn8-hdmi-p1761-1270-a03.dtsi"
 
 / {
 	model = "Toradex Apalis TK1";
@@ -51,32 +50,14 @@
 	};
 
 	host1x {
-		/* tegradc.0 */
-		dc@54200000 {
-			status = "okay";
-			nvidia,dc-flags = <TEGRA_DC_FLAG_ENABLED>;
-			nvidia,emc-clk-rate = <204000000>;
-			nvidia,cmu-enable = <1>;
-			nvidia,low-v-win = <0x2>;
-			nvidia,fb-bpp = <32>; /* bits per pixel */
-			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
-		};
 		/* tegradc.1 */
 		dc@54240000 {
 			status = "okay";
 			nvidia,dc-flags = <TEGRA_DC_FLAG_ENABLED>;
 			nvidia,emc-clk-rate = <300000000>;
+			nvidia,cmu-enable = <1>;
 			nvidia,fb-bpp = <32>; /* bits per pixel */
 			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
-		};
-		dsi {
-			nvidia,dsi-controller-vs = <1>;
-			status = "okay";
-			panel-p-wuxga-10-1 {
-				nvidia,dsi-dpd-pads = <DSIC_DPD_EN DSID_DPD_EN>;
-				nvidia,panel-rst-gpio = <&gpio TEGRA_GPIO(H, 3) 0>; /* PH3 */
-				nvidia,panel-bl-pwm-gpio = <&gpio TEGRA_GPIO(H, 1) 0>; /* PH1 */
-			};
 		};
 	};
 
@@ -226,19 +207,14 @@
 		status = "okay";
 	};
 
-	/* TBD */
 	xusb@70090000 {
 		/* nvidia,uses_external_pmic;
 		nvidia,gpio_controls_muxed_ss_lanes; */
 		nvidia,gpio_ss1_sata = <0>;
-		nvidia,portmap = <0x0703>; /* SSP0, SSP1 USB2P0, USB2P1, USB2P2 */
+		nvidia,portmap = <0x701>; /* SSP0, USB2P0, USBP2 */
 		nvidia,ss_portmap = <0x72>; /* SSP0 on USB2P2 */
-		nvidia,lane_owner = <6>; /* USB3P0 USB3P1 */
+		nvidia,lane_owner = <4>; /* USB3P0 USB3P1 */
 		nvidia,ulpicap = <0>; /* No ulpi support. can we remove */
-		/* nvidia,supply_utmi_vbuses = "usb_vbus0", "usb_vbus1", "usb_vbus2";
-		nvidia,supply_s3p3v = "hvdd_usb";
-		nvidia,supply_s1p8v = "avdd_pll_utmip";
-		nvidia,supply_s1p05v = "avddio_usb"; */
 		status = "okay";
 	};
 	backlight {
