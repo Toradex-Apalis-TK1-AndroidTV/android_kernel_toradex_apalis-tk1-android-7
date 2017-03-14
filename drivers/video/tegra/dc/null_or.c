@@ -27,7 +27,7 @@
 
 #define DRIVER_NAME "null_or"
 
-#ifndef CONFIG_TEGRA_HDMI_PRIMARY
+#ifdef CONFIG_TEGRA_HDMI_PRIMARY
 static struct resource all_disp1_resources[] = {
 	{
 		/* keep fbmem as first variable in array for
@@ -40,7 +40,7 @@ static struct resource all_disp1_resources[] = {
 	},
 	{
 		.name	= "irq",
-#ifndef CONFIG_TEGRA_NVDISPLAY
+#ifdef CONFIG_TEGRA_NVDISPLAY
 		.start	= INT_DISPLAY_GENERAL,
 		.end	= INT_DISPLAY_GENERAL,
 #endif

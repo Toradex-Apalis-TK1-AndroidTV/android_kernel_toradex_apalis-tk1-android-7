@@ -511,6 +511,7 @@ static void __init tegra_apalis_tk1_late_init(void)
 	apalis_tk1_emc_init();
 
 	isomgr_init();
+	tegra_fb_copy_or_clear();
 
 	/* put PEX pads into DPD mode to save additional power */
 	tegra_io_dpd_enable(&pexbias_io);
@@ -659,15 +660,33 @@ static void __init tegra_apalis_tk1_dt_init(void)
 
 static void __init tegra_apalis_tk1_reserve(void)
 {
+#ifdef CONFIG_TEGRA_HDMI_PRIMARY
+	ulong tmp;
+#endif /* CONFIG_TEGRA_HDMI_PRIMARY */
+
 #if defined(CONFIG_NVMAP_CONVERT_CARVEOUT_TO_IOVMM) || \
 		defined(CONFIG_TEGRA_NO_CARVEOUT)
 	ulong carveout_size = 0;
+	ulong fb2_size = SZ_16M;
 #else
 	ulong carveout_size = SZ_1G;
+	ulong fb2_size = SZ_4M;
 #endif
+	ulong fb1_size = SZ_16M + SZ_2M;
 	ulong vpr_size = 186 * SZ_1M;
 
-	tegra_reserve4(carveout_size, 0, 0, vpr_size);;
+#ifdef CONFIG_FRAMEBUFFER_CONSOLE
+	/* support FBcon on 4K monitors */
+	fb2_size = SZ_64M + SZ_8M;	/* 4096*2160*4*2 = 70778880 bytes */
+#endif /* CONFIG_FRAMEBUFFER_CONSOLE */
+
+#ifdef CONFIG_TEGRA_HDMI_PRIMARY
+	tmp = fb1_size;
+	fb1_size = fb2_size;
+	fb2_size = tmp;
+#endif /* CONFIG_TEGRA_HDMI_PRIMARY */
+
+	tegra_reserve4(carveout_size, fb1_size, fb2_size, vpr_size);
 }
 
 static const char *const apalis_tk1_dt_board_compat[] = {

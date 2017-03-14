@@ -811,6 +811,37 @@ struct device_node *tegra_primary_panel_get_dt_node(
 	return of_device_is_available(np_panel) ? np_panel : NULL;
 }
 
+void tegra_fb_copy_or_clear(void)		
+{		
+	bool fb_existed = (tegra_fb_start && tegra_fb_size) ?		
+		true : false;		
+	bool fb2_existed = (tegra_fb2_start && tegra_fb2_size) ?		
+		true : false;		
+		
+	/* Copy the bootloader fb to the fb. */		
+	if (fb_existed) {		
+		if (tegra_bootloader_fb_size)		
+			__tegra_move_framebuffer(NULL,		
+				tegra_fb_start, tegra_bootloader_fb_start,		
+				min(tegra_fb_size, tegra_bootloader_fb_size));		
+		else		
+			__tegra_clear_framebuffer(NULL,		
+				tegra_fb_start, tegra_fb_size);		
+	}		
+		
+	/* Copy the bootloader fb2 to the fb2. */		
+	if (fb2_existed) {		
+		if (tegra_bootloader_fb2_size)		
+			__tegra_move_framebuffer(NULL,		
+				tegra_fb2_start, tegra_bootloader_fb2_start,		
+				min(tegra_fb2_size, tegra_bootloader_fb2_size));		
+		else		
+			__tegra_clear_framebuffer(NULL,		
+				tegra_fb2_start, tegra_fb2_size);		
+	}		
+}		
+
+
 struct device_node *tegra_secondary_panel_get_dt_node(
 			struct tegra_dc_platform_data *pdata)
 {
