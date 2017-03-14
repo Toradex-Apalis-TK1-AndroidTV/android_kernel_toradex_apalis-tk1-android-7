@@ -1,12 +1,30 @@
+/*
+ * arch/arm/boot/dts/tegra124-apalis-eval.dts
+ *
+ * Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 /dts-v1/;
 
 #include "tegra124-soc-shield.dtsi"
 #include "tegra124-platforms/tegra124-apalis-keys.dtsi"
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
-#include "tegra124-platforms/tegra124-apalis-pmic.dtsi"
-#include "tegra124-platforms/tegra124-apalis-fixed.dtsi"
-#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
+#include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
 
 / {
 	model = "Toradex Apalis TK1";
@@ -28,18 +46,6 @@
 
 	psci {
 		status = "disabled";
-	};
-
-	host1x {
-		/* tegradc.0 */
-		dc@54200000 {
-			status = "okay";
-			nvidia,dc-flags = <TEGRA_DC_FLAG_ENABLED>;
-			nvidia,emc-clk-rate = <300000000>;
-			nvidia,cmu-enable = <1>;
-			nvidia,fb-bpp = <32>; /* bits per pixel */
-			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
-		};
 	};
 
 	pinmux@70000868 {
@@ -181,28 +187,29 @@
 
         sata@70020000 {
 		nvidia,enable-sata-port;
+		nvidia,enable-sata-port;
 		nvidia,sata-connector-type=<STANDARD_SATA>;
 		vdd_sata-supply = <&as3722_sd4>;
 		avdd_sata_pll-supply =<&as3722_sd4>;
 		avdd_sata-supply = <&as3722_sd4>;
-		hvdd_sata-supply = <&reg_3v3>;
-		vddio_pex_sata-supply = <&reg_3v3>;
+		hvdd_sata-supply = <&as3722_gpio2_supply>;
+		vddio_pex_sata-supply = <&as3722_gpio2_supply>;
 		status = "okay";
 	};
 
-	/* TBD */
 	xusb@70090000 {
 		/* nvidia,uses_external_pmic;
 		nvidia,gpio_controls_muxed_ss_lanes; */
 		nvidia,gpio_ss1_sata = <0>;
-		nvidia,portmap = <0x0703>; /* SSP0, SSP1 USB2P0, USB2P1, USB2P2 */
+		nvidia,portmap = <0x0703>; /* SSP0, USB2P0, USBP2 */
 		nvidia,ss_portmap = <0x72>; /* SSP0 on USB2P2 */
 		nvidia,lane_owner = <6>; /* USB3P0 USB3P1 */
 		nvidia,ulpicap = <0>; /* No ulpi support. can we remove */
-		/* nvidia,supply_utmi_vbuses = "usb_vbus0", "usb_vbus1", "usb_vbus2";
-		nvidia,supply_s3p3v = "hvdd_usb";
-		nvidia,supply_s1p8v = "avdd_pll_utmip";
-		nvidia,supply_s1p05v = "avddio_usb"; */
+		status = "okay";
+	};
+
+	backlight {
+		compatible = "pwm-backlight";
 		status = "okay";
 	};
 };

@@ -41,15 +41,15 @@
 					nvidia,out-depth = <24>;
 				};
 				display-timings {
-					640x480-24 {
-						clock-frequency = <25200000>;
-						hactive = <640>;
-						vactive = <480>;
-						hfront-porch = <16>;
-						hback-porch = <48>;
-						hsync-len = <96>;
-						vfront-porch = <10>;
-						vback-porch = <33>;
+				      1920x1080-24 {
+						clock-frequency = <148500000>;
+						hactive = <1920>;
+						vactive = <1080>;
+						hfront-porch = <25>;
+						hback-porch = <25>;
+						hsync-len = <25>;
+						vfront-porch = <2>;
+						vback-porch = <2>;
 						vsync-len = <2>;
 						nvidia,h-ref-to-sync = <1>;
 						nvidia,v-ref-to-sync = <1>;
@@ -108,4 +108,3 @@
 		clock-frequency = <100000>;
 	};
 };
-
