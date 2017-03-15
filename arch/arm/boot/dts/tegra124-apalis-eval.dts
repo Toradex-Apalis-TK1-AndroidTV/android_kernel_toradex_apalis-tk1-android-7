@@ -26,12 +26,12 @@
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
 #include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
-#include "panel-p-wuxga-10-1.dtsi"
 
 / {
-	model = "Toradex Apalis TK1";
-	compatible = "toradex,apalis-tk1", "nvidia,tegra124";
+	model = "NVIDIA Tegra124 TN8 FFD";
+	compatible = "nvidia,tn8", "nvidia,tegra124";
 	nvidia,dtsfilename = __FILE__;
+	nvidia,boardids = "1761:1270:0";
 	#address-cells = <2>;
 	#size-cells = <2>;
 
@@ -42,7 +42,7 @@
 	firmware {
 		android {
 			compatible = "android,firmware";
-			hardware = "tegra";
+			hardware = "tn8";
 		};
 	};
 
@@ -59,6 +59,11 @@
 			nvidia,cmu-enable = <1>;
 			nvidia,fb-bpp = <32>; /* bits per pixel */
 			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
+		};
+		hdmi {
+			hdmi-display {
+				nvidia,hdmi-vrr-caps = <1>;
+			};
 		};
 	};
 
