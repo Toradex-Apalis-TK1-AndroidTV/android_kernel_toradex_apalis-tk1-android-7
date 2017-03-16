@@ -25,10 +25,11 @@
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
+#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
 
 / {
-	model = "Toradex Apalis TK1";
-	compatible = "toradex,apalis-tk1", "nvidia,tegra124";
+	model = "NVIDIA Tegra124 PM375";
+	compatible = "nvidia,jetson-tk1", "nvidia,tegra124";
 	nvidia,dtsfilename = __FILE__;
 	#address-cells = <2>;
 	#size-cells = <2>;
@@ -46,6 +47,23 @@
 
 	psci {
 		status = "disabled";
+	};
+
+	host1x {
+		/* tegradc.0 */
+		dc@54200000 {
+			status = "okay";
+			nvidia,dc-flags = <TEGRA_DC_FLAG_ENABLED>;
+			nvidia,emc-clk-rate = <300000000>;
+			nvidia,cmu-enable = <1>;
+			nvidia,fb-bpp = <32>; /* bits per pixel */
+			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
+		};
+		hdmi {
+			hdmi-display {
+				nvidia,hdmi-vrr-caps = <1>;
+			};
+		};
 	};
 
 	pinmux@70000868 {

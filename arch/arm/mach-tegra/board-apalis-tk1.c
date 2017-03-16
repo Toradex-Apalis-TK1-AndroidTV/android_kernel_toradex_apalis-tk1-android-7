@@ -486,7 +486,6 @@ static struct tegra_suspend_platform_data apalis_tk1_suspend_data = {
 
 static void __init tegra_apalis_tk1_late_init(void)
 {
-	apalis_tk1_display_init();
 	apalis_tk1_usb_init();
 #ifdef CONFIG_TEGRA_XUSB_PLATFORM
 	apalis_tk1_xusb_init();
