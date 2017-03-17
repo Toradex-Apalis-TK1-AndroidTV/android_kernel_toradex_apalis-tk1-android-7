@@ -128,6 +128,23 @@
 		status = "okay";
 	};
 */
+
+	i2c@7000c000 {
+		status = "okay";
+		clock-frequency = <100000>;
+
+		pcie-switch@58 {
+			compatible = "plx,pex8605";
+			reg = <0x58>;
+		};
+
+		/* M41T0M6 real time clock on carrier board */
+		rtc@68 {
+			compatible = "st,m41t00";
+			reg = <0x68>;
+		};
+	};
+
 	/* PWR_I2C: power I2C to audio codec, PMIC and temperature sensor */
 	i2c@7000d000 {
 		nvidia,bit-banging-xfer-after-shutdown;
@@ -212,10 +229,25 @@
 	};
 
 	pcie-controller {
-		nvidia,port0_status = <1>;
-		nvidia,port1_status = <1>;
+		hvdd-pex-supply = <&reg_3v3_supply>;
+		hvdd-pex-pll-e-supply = <&reg_3v3_supply>;
+		dvddio-pex-supply = <&as3722_sd4>;
+		avddio-pex-supply = <&as3722_sd4>;
+		avdd-pex-pll-supply = <&as3722_sd4>;
+		vddio-pex-ctl-supply = <&as3722_sd4>;
+		nvidia,lane-map = <0x12>;
 		status = "okay";
+		pci@1,0 {
+			nvidia,disable-clock-request;
+			status = "okay";
+		};
+
+		pci@2,0 {
+			nvidia,disable-clock-request;
+			status = "okay";
+		};
 	};
+
 
         sata@70020000 {
 		nvidia,enable-sata-port;
