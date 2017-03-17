@@ -198,19 +198,6 @@
 		};
 	};
 
-	pmc {
-		status = "okay";
-		nvidia,invert-interrupt;
-		nvidia,suspend-mode = <0>;
-		nvidia,cpu-pwr-good-time = <500>;
-		nvidia,cpu-pwr-off-time = <300>;
-		nvidia,core-pwr-good-time = <3845 3845>;
-		nvidia,core-pwr-off-time = <2000>;
-		nvidia,core-power-req-active-high;
-		nvidia,sys-clock-req-active-high;
-		nvidia,lp0-vec = <0xf46ff000 2064>;
-	};
-
 	pcie-controller {
 		hvdd-pex-supply = <&reg_3v3_supply>;
 		hvdd-pex-pll-e-supply = <&reg_3v3_supply>;
@@ -218,7 +205,7 @@
 		avddio-pex-supply = <&as3722_sd4>;
 		avdd-pex-pll-supply = <&as3722_sd4>;
 		vddio-pex-ctl-supply = <&as3722_sd4>;
-		nvidia,lane-map = <0x12>;
+		nvidia,lane-map = <0x10>;
 		status = "okay";
 		pci@1,0 {
 			nvidia,disable-clock-request;
@@ -230,7 +217,6 @@
 			status = "okay";
 		};
 	};
-
 
         sata@70020000 {
 		nvidia,enable-sata-port;
