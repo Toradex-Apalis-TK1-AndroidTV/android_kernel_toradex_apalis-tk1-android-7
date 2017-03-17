@@ -484,7 +484,7 @@ static void __init tegra_apalis_tk1_late_init(void)
 	apalis_tk1_regulator_init();
 
 	apalis_tk1_dtv_init();
-	tegra_init_suspend(&apalis_tk1_suspend_data);
+	apalis_tk1_suspend_init();
 
 	apalis_tk1_emc_init();
 

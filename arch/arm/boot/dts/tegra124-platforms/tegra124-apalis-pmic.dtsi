@@ -149,7 +149,7 @@
 					    };
 					    c4 {
 					     	    regulator-consumer-supply = "pwrdet_pex_ctl";
-						    regulator-consumer-device = "tegra-pcie"
+						    regulator-consumer-device = "tegra-pcie";
 					    };
 					    c5 {
 						    regulator-consumer-supply = "avdd_sata";
