@@ -20,14 +20,14 @@
 
 /dts-v1/;
 
-#include <dt-bindings/display/tegra-dc.h>
-
 #include "tegra124-soc-shield.dtsi"
 #include "tegra124-platforms/tegra124-apalis-keys.dtsi"
 #include "tegra124-platforms/tegra124-apalis-gpio.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pinmux.dtsi"
 #include "tegra124-platforms/tegra124-apalis-pmic.dtsi"
 #include "tegra124-platforms/tegra124-apalis-fixed.dtsi"
+#include "tegra124-platforms/tegra124-laguna-hdmi-pm375-1000-a00.dtsi"
+#include "tegra124-platforms/tegra124-apalis-power-tree.dtsi"
 #include "panel-p-wuxga-10-1.dtsi"
 
 / {
@@ -70,102 +70,16 @@
 			nvidia,emc-clk-rate = <300000000>;
 			nvidia,fb-bpp = <32>; /* bits per pixel */
 			nvidia,fb-flags = <TEGRA_FB_FLIP_ON_PROBE>;
-			avdd_hdmi-supply = <&as3722_sd4>;
-			avdd_hdmi_pll-supply = <&as3722_sd4>;
-			vdd_hdmi_5v0-supply = <&vdd_hdmi>;
 		};
 		dsi {
 			nvidia,dsi-controller-vs = <1>;
 			status = "okay";
 			panel-p-wuxga-10-1 {
-				nvidia,dsi-panel-rst-gpio = <&gpio TEGRA_GPIO(H, 3) 0>; /* PH3 */
-				nvidia,dsi-panel-bl-pwm-gpio = <&gpio TEGRA_GPIO(H, 1) 0>; /* PH1 */
+				nvidia,dsi-dpd-pads = <DSIC_DPD_EN DSID_DPD_EN>;
+				nvidia,panel-rst-gpio = <&gpio TEGRA_GPIO(H, 3) 0>; /* PH3 */
+				nvidia,panel-bl-pwm-gpio = <&gpio TEGRA_GPIO(H, 1) 0>; /* PH1 */
 			};
 		};
-
-		hdmi {
-			status = "okay";
-			nvidia,ddc-i2c-bus = <&hdmi_ddc>;
-			nvidia,hpd-gpio = <&gpio TEGRA_GPIO(N, 7) 1>; /* PN7 */
-			hdmi-display {
-				status = "okay";
-				disp-default-out {
-					nvidia,out-type = <TEGRA_DC_OUT_HDMI>;
-					nvidia,out-flags = <TEGRA_DC_OUT_HOTPLUG_HIGH>;
-					nvidia,out-parent-clk = "pll_d2";
-					nvidia,out-max-pixclk = <3367>; /* KHZ2PICOS(297000) */
-					nvidia,out-align = <TEGRA_DC_ALIGN_MSB>;
-					nvidia,out-order = <TEGRA_DC_ORDER_RED_BLUE>;
-					nvidia,out-xres = <1920>;
-					nvidia,out-yres = <1080>;
-				};
-				display-timings {
-				      1920x1080-24 {
-						clock-frequency = <148500000>;
-						hactive = <1920>;
-						vactive = <1080>;
-						hfront-porch = <25>;
-						hback-porch = <25>;
-						hsync-len = <25>;
-						vfront-porch = <2>;
-						vback-porch = <2>;
-						vsync-len = <2>;
-						nvidia,h-ref-to-sync = <1>;
-						nvidia,v-ref-to-sync = <1>;
-					};
-				};
-				tmds-config {
-					tmds-cfg@0 {
-						version = <1 0>;
-						pclk = <27000000>;
-						pll0 = <0x01003010>;
-						pll1 = <0x00301b00>;
-						pe-current = <0x00000000>;
-						drive-current = <0x1f1f1f1f>;
-						peak-current = <0x03030303>;
-						pad-ctls0-mask = <0xfffff0ff>;
-						pad-ctls0-setting = <0x00000400>;
-					};
-					tmds-cfg@1 {
-						version = <1 0>;
-						pclk = <74250000>;
-						pll0 = <0x01003110>;
-						pll1 = <0x00301500>;
-						pe-current = <0x08080808>;
-						drive-current = <0x2d2d2d2d>;
-						peak-current = <0x00000000>;
-						pad-ctls0-mask = <0xfffff0ff>;
-						pad-ctls0-setting = <0x00000400>;
-					};
-					tmds-cfg@2 {
-						version = <1 0>;
-						pclk = <148500000>;
-						pll0 = <0x01003310>;
-						pll1 = <0x00301500>;
-						pe-current = <0x00000000>;
-						drive-current = <0x2d2d2d2d>;
-						peak-current = <0x05050505>;
-						pad-ctls0-mask = <0xfffff0ff>;
-						pad-ctls0-setting = <0x00000400>;
-					};
-					tmds-cfg@3 {
-						version = <1 0>;
-						pclk = <0x7fffffff>;
-						pll0 = <0x01003f10>;
-						pll1 = <0x00300f00>;
-						pe-current = <0x00000000>;
-						drive-current = <0x37373737>;
-						peak-current = <0x17171717>;
-						pad-ctls0-mask = <0xfffff0ff>;
-						pad-ctls0-setting = <0x00000600>;
-					};
-				};
-			};
-		};
-	};
-
-	hdmi_ddc: i2c@7000c400 {
-		clock-frequency = <100000>;
 	};
 
 	pinmux@70000868 {
