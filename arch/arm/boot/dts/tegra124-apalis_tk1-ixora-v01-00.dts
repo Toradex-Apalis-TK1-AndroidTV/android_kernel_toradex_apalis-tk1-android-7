@@ -207,14 +207,27 @@
 	};
 
 	pcie-controller {
-		nvidia,port0_status = <1>;
-		nvidia,port1_status = <1>;
-        hvdd_pex-supply = <&reg_3v3>;
-        avdd_pex_pll-supply = <&as3722_sd4>;
+		hvdd-pex-supply = <&reg_3v3>;
+		hvdd-pex-pll-e-supply = <&reg_3v3>;
+		dvddio-pex-supply = <&as3722_sd4>;
+		avddio-pex-supply = <&as3722_sd4>;
+		avdd-pex-pll-supply = <&as3722_sd4>;
+		vddio-pex-ctl-supply = <&as3722_sd4>;
+		nvidia,lane-map = <0x12>;
 		status = "okay";
+		pci@1,0 {
+			nvidia,disable-clock-request;
+			status = "okay";
+		};
+
+		pci@2,0 {
+			nvidia,disable-clock-request;
+			status = "okay";
+		};
 	};
 
-	sata@0x70020000 {
+
+	sata@70020000 {
 		nvidia,enable-sata-port;
 		nvidia,sata-connector-type=<STANDARD_SATA>;
 		vdd_sata-supply = <&as3722_sd4>;
